@@ -1,0 +1,102 @@
+CREATE DATABASE IF NOT EXISTS myfolio CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE myfolio;
+
+CREATE TABLE roles (
+    id TINYINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(40) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE users (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    role_id TINYINT UNSIGNED NOT NULL,
+    google_sub VARCHAR(191) UNIQUE,
+    email VARCHAR(191) NOT NULL UNIQUE,
+    name VARCHAR(191) NOT NULL,
+    avatar_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_users_role FOREIGN KEY (role_id) REFERENCES roles(id)
+) ENGINE=InnoDB;
+
+CREATE TABLE menus (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    parent_id BIGINT UNSIGNED NULL,
+    label VARCHAR(191) NOT NULL,
+    slug VARCHAR(191) NOT NULL UNIQUE,
+    sort_order INT NOT NULL DEFAULT 0,
+    is_visible BOOLEAN NOT NULL DEFAULT TRUE,
+    CONSTRAINT fk_menus_parent FOREIGN KEY (parent_id) REFERENCES menus(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE pa_categories (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    assessment_part ENUM('part_1', 'part_2') NOT NULL,
+    menu_id BIGINT UNSIGNED NULL,
+    name VARCHAR(191) NOT NULL,
+    description TEXT,
+    sort_order INT NOT NULL DEFAULT 0,
+    CONSTRAINT fk_categories_menu FOREIGN KEY (menu_id) REFERENCES menus(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE pa_items (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    category_id BIGINT UNSIGNED NOT NULL,
+    evaluation_year SMALLINT UNSIGNED NOT NULL,
+    evaluation_round ENUM('salary_march', 'vpa_september') NOT NULL,
+    title VARCHAR(191) NOT NULL,
+    description TEXT,
+    github_url VARCHAR(500),
+    status ENUM('draft', 'published', 'archived') NOT NULL DEFAULT 'draft',
+    sort_order INT NOT NULL DEFAULT 0,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_items_category FOREIGN KEY (category_id) REFERENCES pa_categories(id) ON DELETE CASCADE,
+    CONSTRAINT fk_items_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE pa_files (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pa_item_id BIGINT UNSIGNED NOT NULL,
+    original_name VARCHAR(255) NOT NULL,
+    storage_path VARCHAR(500) NOT NULL UNIQUE,
+    mime_type VARCHAR(100) NOT NULL,
+    file_size BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    page_count INT UNSIGNED NULL,
+    uploaded_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_files_item FOREIGN KEY (pa_item_id) REFERENCES pa_items(id) ON DELETE CASCADE,
+    CONSTRAINT fk_files_uploader FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE evaluation_comments (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    pa_item_id BIGINT UNSIGNED NOT NULL,
+    user_id BIGINT UNSIGNED NOT NULL,
+    body TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comments_item FOREIGN KEY (pa_item_id) REFERENCES pa_items(id) ON DELETE CASCADE,
+    CONSTRAINT fk_comments_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE committee_emails (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(191) NOT NULL UNIQUE,
+    created_by BIGINT UNSIGNED NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_committee_creator FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE activity_logs (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT UNSIGNED NULL,
+    action VARCHAR(80) NOT NULL,
+    entity_type VARCHAR(80),
+    entity_id BIGINT UNSIGNED,
+    ip_address VARCHAR(45),
+    metadata JSON,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_activity_user FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;

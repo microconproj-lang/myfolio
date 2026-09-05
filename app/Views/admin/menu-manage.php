@@ -1,0 +1,1 @@
+<section><h1 class="text-3xl font-semibold">จัดการเมนู</h1><p class="mt-3 text-slate-400">เมนูแบบ dynamic จะเชื่อมกับตาราง `menus` ในขั้นตอน CRUD ถัดไป</p></section>

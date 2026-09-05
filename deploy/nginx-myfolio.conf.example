@@ -1,0 +1,37 @@
+# Put these locations inside the HTTPS server block for portal.pccpl.ac.th.
+# Required: php8.3-fpm must be installed and running.
+
+location = /myfolio {
+    return 301 /myfolio/;
+}
+
+location /myfolio/ {
+    alias /var/www/html/portal/myfolio/public/;
+    client_max_body_size 25M;
+    try_files $uri $uri/ @myfolio_front_controller;
+}
+
+location = /myfolio/ {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME /var/www/html/portal/myfolio/public/index.php;
+    fastcgi_param SCRIPT_NAME /myfolio/index.php;
+    fastcgi_param REQUEST_URI /myfolio/;
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+}
+
+location @myfolio_front_controller {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME /var/www/html/portal/myfolio/public/index.php;
+    fastcgi_param SCRIPT_NAME /myfolio/index.php;
+    fastcgi_param PATH_INFO "";
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+}
+
+location = /myfolio/index.php {
+    include fastcgi_params;
+    fastcgi_param SCRIPT_FILENAME /var/www/html/portal/myfolio/public/index.php;
+    fastcgi_param SCRIPT_NAME /myfolio/index.php;
+    fastcgi_param REQUEST_URI /myfolio/;
+    fastcgi_param PATH_INFO "";
+    fastcgi_pass unix:/run/php/php8.3-fpm.sock;
+}

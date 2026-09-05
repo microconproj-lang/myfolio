@@ -1,0 +1,4 @@
+; Copy to /etc/php/8.3/fpm/conf.d/99-myfolio-upload.ini and restart PHP-FPM.
+upload_max_filesize = 20M
+post_max_size = 25M
+max_file_uploads = 10
