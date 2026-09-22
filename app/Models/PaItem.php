@@ -31,7 +31,7 @@ final class PaItem
     public static function published(): array
     {
         return Database::connection()->query(
-                'SELECT pa_items.*, pa_categories.name AS category_name, pa_categories.sort_order AS category_sort_order,
+                'SELECT pa_items.*, pa_categories.name AS category_name, pa_categories.assessment_part, pa_categories.sort_order AS category_sort_order,
                     (SELECT id FROM pa_files WHERE pa_files.pa_item_id = pa_items.id AND mime_type IN ("image/jpeg", "image/png", "image/webp") ORDER BY id LIMIT 1) AS thumbnail_file_id
              FROM pa_items INNER JOIN pa_categories ON pa_categories.id = pa_items.category_id
              WHERE pa_items.status = "published" ORDER BY pa_items.evaluation_year DESC, pa_items.evaluation_round, pa_categories.sort_order, pa_items.sort_order, pa_items.id DESC'
